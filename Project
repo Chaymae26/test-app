@@ -1,0 +1,263 @@
+Attribute VB_Name = "NOUVEL_ACHAT"
+Attribute VB_Base = "0{1957846F-2E30-4E1F-9181-C94F42CA92F3}{510B6E63-792B-4E14-A6C5-B6072F3826B7}"
+Attribute VB_GlobalNameSpace = False
+Attribute VB_Creatable = False
+Attribute VB_PredeclaredId = True
+Attribute VB_Exposed = False
+Attribute VB_TemplateDerived = False
+Attribute VB_Customizable = False
+Dim newSheet As Worksheet
+Dim dataSheet As Worksheet
+Dim ws As Worksheet
+Dim sheetName As String
+Dim sheetName2 As String
+Dim currentRow As Long
+Dim sumRow As Long
+
+Sub Valider_Click()
+
+    Dim Devise As String
+    Dim MtDH As Variant
+    Dim MtDevise As Double
+    Dim DDTTC As Double
+    Dim MTTVA As Double
+    Dim TauxDeChange As Double
+    Dim workingRow As Long
+
+    Set frm = Nouvel_Achat
+    Set ws = ThisWorkbook.Worksheets("Dossiers Achat")
+    Set newSheet = ThisWorkbook.Sheets.Add(After:=ws)
+    
+    sheetName = "Dossier " & Trim(frm.NDossier.value)
+    sheetName = GetValidSheetName(sheetName)
+    newSheet.Name = sheetName
+    ThisWorkbook.Worksheets("CopySheet").Range("A1:Q6").Copy newSheet.Range("A1")
+    newSheet.Rows.RowHeight = 30
+    newSheet.Columns.ColumnWidth = 25
+    
+    newSheet.Range("A2").value = Me.NDossier.value
+    newSheet.Range("B2").value = Me.NBC.value
+    newSheet.Range("C2").value = Me.DateBC.value
+    newSheet.Range("D2").value = Me.NFacture.value
+    newSheet.Range("E2").value = Me.DateFacture.value
+    newSheet.Range("F2").value = Me.Fournisseur.value
+    newSheet.Range("G2").value = Me.NDUM.value
+    newSheet.Range("H2").value = Me.DateDUM.value
+    newSheet.Range("I2").value = Me.Poids.value
+    newSheet.Range("J2").value = Me.MtDevise.value
+    newSheet.Range("L2").value = Me.StatusPaiement.value
+    newSheet.Range("Z1").value = Me.TauxDeChange.value
+    Range("Z1").Font.Color = RGB(255, 255, 255)
+    
+    If Me.OptionDollar.value Then
+        Devise = "Dollar"
+    ElseIf Me.OptionEuro.value Then
+        Devise = "Euro"
+    ElseIf Me.OptionPound.value Then
+        Devise = "Pound"
+    End If
+
+    newSheet.Range("K2").value = Devise
+
+    MtDevise = Val(Me.MtDevise.value)
+    TauxDeChange = Val(Me.TauxDeChange.value)
+
+    MtDH = MtDevise * TauxDeChange
+    newSheet.Range("M2").value = MtDH
+
+    newSheet.Range("N2").value = Me.DatePaiement.value
+    
+    DDTTC = Val(Me.DroitDouaneTTC.value)
+    MTTVA = Val(Me.TVADouane.value)
+    Taxe = Val(Me.TaxeRÃ©gionale.value)
+    
+    
+    newSheet.Range("O2").Formula = "=" & DDTTC & "-" & MTTVA
+    newSheet.Range("P2").value = Me.TVADouane.value
+    newSheet.Range("Q2").value = Me.AutresCharges.value
+    
+    
+End Sub
+
+Sub Suivant_Click()
+
+    Dim Devise As String
+    Dim MtDH As Variant
+    Dim MtDevise As Double
+    Dim DDTTC As Double
+    Dim MTTVA As Double
+    Dim TauxDeChange As Double
+    Dim workingRow As Long
+    Dim startRow2 As Long
+    Dim endRow2 As Long
+    Dim startRow3 As Long
+    Dim endRow3 As Long
+    Dim copyRange As Range
+    Dim pasteRange As Range
+    
+    If Not AreAllTextBoxesFilled(Me) Then
+        MsgBox "Veuillez remplir toutes les cases", vbExclamation
+        Exit Sub
+    End If
+    
+    Set frm = Nouvel_Achat
+    sheetName = "Dossier " & Trim(frm.NDossier.value)
+    Set newSheet = ThisWorkbook.Worksheets(sheetName)
+    
+    Me.Hide
+    
+    newSheet.Range("A5").value = Me.Transport.value
+    newSheet.Range("I5").value = Me.StatusPaiementTransport.value
+    
+    sumRow = newSheet.Cells(newSheet.Rows.Count, "B").End(xlUp).Row + 1
+        
+    newSheet.Cells(sumRow, "C").Formula = "=SUM(C5:C" & sumRow - 1 & ")"
+    newSheet.Cells(sumRow, "F").Formula = "=SUM(F5:F" & sumRow - 1 & ")"
+    newSheet.Cells(sumRow, "G").Formula = "=SUM(G5:G" & sumRow - 1 & ")"
+    newSheet.Cells(sumRow, "E").Formula = "=SUM(E5:E" & sumRow - 1 & ")"
+        
+
+    newSheet.Range("H5").value = newSheet.Cells(sumRow, "C").value + newSheet.Cells(sumRow, "G").value + Taxe
+    
+    startRow = 5 ' Starting row for merging
+    endRow = sumRow - 1 ' Ending row for merging
+
+    newSheet.Range("A" & startRow & ":A" & endRow).Merge
+    newSheet.Range("A" & startRow & ":A" & endRow).HorizontalAlignment = xlCenter
+    
+    
+    startRow2 = 5 ' Starting row for merging
+    endRow2 = sumRow ' Ending row for merging
+
+    ' Merge and center the cells from startRow to endRow in the desired column
+    newSheet.Range("H" & startRow2 & ":H" & endRow2).Merge
+    newSheet.Range("H" & startRow2 & ":H" & endRow2).HorizontalAlignment = xlCenter
+    
+    
+    startRow3 = 5 ' Starting row for merging
+    endRow3 = sumRow ' Ending row for merging
+
+    newSheet.Range("I" & startRow3 & ":I" & endRow3).Merge
+    newSheet.Range("I" & startRow3 & ":I" & endRow3).HorizontalAlignment = xlCenter
+    
+    
+    Set copyRange = ThisWorkbook.Sheets("CopySheet").Range("A9:N10")
+    pasteRow = newSheet.Cells.SpecialCells(xlCellTypeLastCell).Row + 3
+
+    Set pasteRange = newSheet.Cells(pasteRow, "A")
+    copyRange.Copy pasteRange
+    FirstClick = True
+
+    Details_Articles.Show
+    
+    Me.NDossier.value = ""
+    Me.NBC.value = ""
+    Me.DateBC.value = ""
+    Me.NFacture.value = ""
+    Me.DateFacture.value = ""
+    Me.Fournisseur.value = ""
+    Me.NDUM.value = ""
+    Me.DateDUM.value = ""
+    Me.Poids.value = ""
+    Me.MtDevise.value = ""
+    Me.TauxDeChange.value = ""
+    Me.StatusPaiement.value = ""
+    Me.OptionDollar.value = False
+    Me.OptionEuro.value = False
+    Me.OptionPound.value = False
+    Me.DatePaiement.value = ""
+    Me.DroitDouaneTTC.value = ""
+    Me.TVADouane.value = ""
+    Me.AutresCharges.value = ""
+    Me.Transport.value = ""
+    Me.StatusPaiementTransport.value = ""
+    Me.TaxeRÃ©gionale.value = ""
+    
+    
+End Sub
+
+Sub AjouterCharge_Click()
+
+    Dim IntitulÃ©CNT As String
+    Dim ValeurCNT As Double
+    Dim IntitulÃ©CT As String
+    Dim ValeurHTCT As Double
+    Dim TauxTVA As Double
+    Dim targetRow As Long
+    Dim TVATransport As Double
+    Dim ValeurTTCCT As Double
+    Dim FirstTableCopied As Boolean
+    
+    Set frm = Nouvel_Achat
+    sheetName = "Dossier " & Trim(frm.NDossier.value)
+    Set newSheet = ThisWorkbook.Worksheets(sheetName)
+    
+    IntitulÃ©CNT = Me.IntitulÃ©CNT.Text
+    ValeurCNT = Val(Me.ValeurCNT.value)
+    IntitulÃ©CT = Me.IntitulÃ©CT.Text
+    ValeurHTCT = Val(Me.ValeurHTCT.value)
+    
+    
+    If Not AreAllBoxesFilled(Me) Then
+        MsgBox "Veuillez remplir toutes les cases.", vbExclamation
+        Exit Sub
+    End If
+    
+    
+    TauxTVA = 0
+    If Me.OptionTaux20.value Then
+        TauxTVA = 0.2
+    ElseIf Me.OptionTaux14.value Then
+        TauxTVA = 0.14
+    ElseIf Me.OptionTaux10.value Then
+        TauxTVA = 0.1
+    ElseIf Me.OptionTaux7.value Then
+        TauxTVA = 0.07
+    End If
+    
+    TVATransport = TauxTVA * ValeurHTCT
+    ValeurTTCCT = ValeurHTCT + TVATransport
+    
+    
+    ' Determine the target row
+    targetRow = 5
+
+    
+    If Not newSheet Is Nothing Then
+        Do While targetRow <= newSheet.Rows.Count
+            If newSheet.Cells(targetRow, "B").value = "" Then
+                Exit Do
+                
+            End If
+            
+            targetRow = targetRow + 1
+            newSheet.Rows(targetRow).Insert Shift:=xlDown
+
+        Loop
+        
+        If targetRow <= newSheet.Rows.Count Then
+            newSheet.Cells(targetRow, "B").value = IntitulÃ©CNT
+            newSheet.Cells(targetRow, "C").value = ValeurCNT
+            newSheet.Cells(targetRow, "D").value = IntitulÃ©CT
+            newSheet.Cells(targetRow, "E").value = ValeurHTCT
+            newSheet.Cells(targetRow, "F").value = TVATransport
+            newSheet.Cells(targetRow, "G").value = ValeurTTCCT
+            
+            Me.IntitulÃ©CNT.value = ""
+            Me.ValeurCNT.value = ""
+            Me.IntitulÃ©CT.value = ""
+            Me.ValeurHTCT.value = ""
+            Me.OptionTaux20.value = False
+            Me.OptionTaux14.value = False
+            Me.OptionTaux10.value = False
+            Me.OptionTaux7.value = False
+            
+            Me.IntitulÃ©CNT.SetFocus
+        End If
+    
+        newSheet.Rows(targetRow).Interior.ColorIndex = xlNone
+
+    End If
+    
+    
+End Sub
