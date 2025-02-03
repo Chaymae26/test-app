@@ -1,0 +1,441 @@
+Attribute VB_Name = "Details_Articles"
+Attribute VB_Base = "0{75408F5F-EE5E-46E1-9F8C-5933F287C382}{15493DF6-9205-4EC3-B83E-87AB1AD31ADD}"
+Attribute VB_GlobalNameSpace = False
+Attribute VB_Creatable = False
+Attribute VB_PredeclaredId = True
+Attribute VB_Exposed = False
+Attribute VB_TemplateDerived = False
+Attribute VB_Customizable = False
+Dim sheetName As String
+Dim newSheet As Worksheet
+Dim dataSheet As Worksheet
+Dim currentRow As Long
+Dim sumRow As Long
+
+
+Sub AjouterElement_Click()
+    
+    Dim ws As Worksheet
+    Dim ElementValue As String
+    Dim CodeElementValue As String
+    Dim QuantitéValue As Double
+    Dim PrixUnitaireDeviseValue As Double
+    Dim TVAArticleValue As Double
+    Dim TotalDDHT As Double
+    Dim TotalDDHTValue As Double
+    Dim lastRow2 As Long
+    Dim currentRow2 As Long
+    Dim lastRow3 As Long
+    Dim currentRow3 As Long
+    Dim lastRow4 As Long
+    Dim currentRow4 As Long
+    Dim Code As String
+    Dim dataSheet2 As Worksheet
+    Dim tableName2 As ListObject
+    Dim addedRow2 As ListRow
+    Dim dataSheet3 As Worksheet
+    Dim tableName3 As ListObject
+    Dim addedRow3 As ListRow
+    Dim dataSheet4 As Worksheet
+    Dim tableName4 As ListObject
+    Dim addedRow4 As ListRow
+
+    If Not AreAllDetailsBoxesFilled2(Me) Then
+        MsgBox "Veuillez remplir toutes les cases.", vbExclamation
+        Exit Sub
+    End If
+    
+    sheetName = "Dossier " & Trim(Me.NDossier.value)
+    Set newSheet = ThisWorkbook.Sheets(sheetName)
+        
+    If FirstClick = True Then
+        currentRow = pasteRow + 1
+        sumRow = pasteRow + 2
+        FirstClick = False
+    End If
+    
+    CodeInterimValue = Me.CodeInterim.value
+    TotalDDHTValue = Val(Me.TotalDDHT.value)
+    ElementValue = Me.Element.value
+    CodeElementValue = Me.CodeElement.value
+    QuantitéValue = Val(Me.Quantité.value)
+    PrixUnitaireDeviseValue = Val(Me.PrixUnitaireDevise.value)
+    TVAArticleValue = Val(Me.TVAArticle.value)
+    
+    newSheet.Rows(currentRow).Insert Shift:=xlDown
+
+    lastRow2 = newSheet.Cells(newSheet.Rows.Count, "F").End(xlUp).Row
+
+    For currentRow2 = 5 To lastRow2
+        If Left(newSheet.Cells(currentRow2, "F").Formula, 4) = "=SUM" Then
+            FindCellWithSumTVATR = newSheet.Cells(currentRow2, "F").value
+            Exit For
+        End If
+    
+    Next currentRow2
+    
+    lastRow3 = newSheet.Cells(newSheet.Rows.Count, "C").End(xlUp).Row
+
+    For currentRow3 = 5 To lastRow3
+        If Left(newSheet.Cells(currentRow3, "C").Formula, 4) = "=SUM" Then
+            FindCellWithSumCNT = newSheet.Cells(currentRow3, "C").value
+            Exit For
+        End If
+    
+    Next currentRow3
+
+    lastRow4 = newSheet.Cells(newSheet.Rows.Count, "E").End(xlUp).Row
+
+    For currentRow4 = 5 To lastRow4
+        If Left(newSheet.Cells(currentRow4, "E").Formula, 4) = "=SUM" Then
+            FindCellWithSumCT = newSheet.Cells(currentRow4, "E").value
+            Exit For
+        End If
+    
+    Next currentRow4
+    
+
+     ' Assign the input values to the cells on the new sheet
+    If CodeInterimValue = CStr(0) Then
+        newSheet.Cells(currentRow, "B").value = CodeElementValue
+        Code = CodeElementValue
+    
+    Else
+        newSheet.Cells(currentRow, "B").value = CodeInterimValue
+        Code = CodeInterimValue
+        
+    End If
+    
+    newSheet.Cells(currentRow, "A").value = ElementValue
+    newSheet.Cells(currentRow, "C").value = QuantitéValue
+    newSheet.Cells(currentRow, "D").value = PrixUnitaireDeviseValue
+    newSheet.Cells(currentRow, "E").value = QuantitéValue * PrixUnitaireDeviseValue
+    newSheet.Cells(currentRow, "F").value = newSheet.Cells(1, "Z").value * PrixUnitaireDeviseValue
+    newSheet.Cells(currentRow, "G").value = newSheet.Cells(currentRow, "F").value * QuantitéValue
+    newSheet.Cells(sumRow, "H").value = TotalDDHTValue
+    newSheet.Cells(sumRow, "AA").value = TotalDDHTValue
+    newSheet.Cells(sumRow, "AA").Font.Color = RGB(255, 255, 255)
+    newSheet.Cells(sumRow, "I").value = TVAArticleValue
+    newSheet.Cells(sumRow, "G").Formula = "=SUM(G" & pasteRow + 1 & ":G" & currentRow & ")"
+    
+
+    ' Calculate additional equations and assign them to the respective cells on the new sheet
+    
+    newSheet.Cells(currentRow, "H").Formula = "=IFERROR(" & TotalDDHTValue & " * G" & currentRow & "/G" & sumRow & ", 0)"
+    newSheet.Cells(currentRow, "I").Formula = "=IFERROR(" & TVAArticleValue & " * H" & currentRow & "/H" & sumRow & ", " & TVAArticleValue & " * G" & currentRow & "/G" & sumRow & ")"
+    newSheet.Cells(currentRow, "J").Formula = "=IFERROR((I" & currentRow & "*Q2)/P2, 0)"
+    newSheet.Cells(currentRow, "K").Formula = "=H" & currentRow & "+I" & currentRow & "+J" & currentRow
+    newSheet.Cells(currentRow, "L").Formula = "=IFERROR((I" & currentRow & " * (" & FindCellWithSumCNT & "+" & FindCellWithSumCT & "))/P2, 0)"
+    newSheet.Cells(currentRow, "M").Formula = "=IFERROR((I" & currentRow & " * " & Replace(CStr(FindCellWithSumTVATR), ",", ".") & ")/P2, 0)"
+    newSheet.Cells(currentRow, "N").Formula = "=G" & currentRow & "+H" & currentRow & "+J" & currentRow & "+L" & currentRow
+    newSheet.Cells(currentRow, "Z").Formula = "=M" & currentRow & "+I" & currentRow & "+N" & currentRow
+    newSheet.Cells(currentRow, "Z").Font.Color = RGB(255, 255, 255)
+
+    ' Calculate the sums and assign them to the respective cells on the new sheet
+    newSheet.Cells(sumRow, "C").Formula = "=SUM(C" & pasteRow + 1 & ":C" & currentRow & ")"
+    newSheet.Cells(sumRow, "D").Formula = "=SUM(D" & pasteRow + 1 & ":D" & currentRow & ")"
+    newSheet.Cells(sumRow, "E").Formula = "=SUM(E" & pasteRow + 1 & ":E" & currentRow & ")"
+    newSheet.Cells(sumRow, "F").Formula = "=SUM(F" & pasteRow + 1 & ":F" & currentRow & ")"
+    
+    newSheet.Cells(sumRow, "J").Formula = "=SUM(J" & pasteRow + 1 & ":J" & currentRow & ")"
+    newSheet.Cells(sumRow, "K").Formula = "=SUM(K" & pasteRow + 1 & ":K" & currentRow & ")"
+    newSheet.Cells(sumRow, "L").Formula = "=SUM(L" & pasteRow + 1 & ":L" & currentRow & ")"
+    newSheet.Cells(sumRow, "M").Formula = "=SUM(M" & pasteRow + 1 & ":M" & currentRow & ")"
+    newSheet.Cells(sumRow, "N").Formula = "=SUM(N" & pasteRow + 1 & ":N" & currentRow & ")"
+    newSheet.Cells(sumRow, "Z").Formula = "=SUM(Z" & pasteRow + 1 & ":Z" & currentRow & ")"
+    
+    newSheet.Cells(sumRow, "Z").Font.Color = RGB(255, 255, 255)
+
+    newSheet.Rows(currentRow).Interior.ColorIndex = xlNone
+    
+
+    ' Clear the form inputs
+    Me.Element.value = ""
+    Me.CodeElement.value = ""
+    Me.CodeInterim.value = ""
+    Me.Quantité.value = ""
+    Me.PrixUnitaireDevise.value = ""
+    
+    
+    Set dataSheet2 = ThisWorkbook.Sheets("Base De Données Achat Articles")
+    Set tableName2 = dataSheet2.ListObjects("BD_Articles")
+    Set addedRow2 = tableName2.ListRows.Add()
+    With addedRow2
+        .Range(1) = newSheet.Range("A2").value
+        .Range(2) = CodeElementValue
+        .Range(3) = Code
+        .Range(4) = ElementValue
+        .Range(5) = QuantitéValue
+        .Range(6).Formula = "='" & sheetName & "'!G" & currentRow & "+'" & sheetName & "'!H" & currentRow & "+'" & sheetName & "'!J" & currentRow & "+'" & sheetName & "'!L" & currentRow
+        .Range.Interior.ColorIndex = xlNone
+    End With
+    
+    
+    Set dataSheet3 = ThisWorkbook.Sheets("PV Par Article")
+    Set tableName3 = dataSheet3.ListObjects("PV_Table")
+    Set addedRow3 = tableName3.ListRows.Add()
+    With addedRow3
+        .Range(1) = Code
+        .Range(2) = newSheet.Range("A2").value
+        .Range(3) = "='" & sheetName & "'!G" & currentRow & "+'" & sheetName & "'!H" & currentRow & "+'" & sheetName & "'!J" & currentRow & "+'" & sheetName & "'!L" & currentRow & "/" & QuantitéValue
+        .Range.Interior.ColorIndex = xlNone
+    End With
+    
+    
+    Set dataSheet4 = ThisWorkbook.Sheets("Summary")
+    Set tableName4 = dataSheet4.ListObjects("SummaryTable")
+    Set addedRow4 = tableName4.ListRows.Add()
+    With addedRow4
+        .Range(1) = Code
+        .Range(2) = newSheet.Range("A2").value
+        .Range(5) = "=('" & sheetName & "'!G" & currentRow & "+'" & sheetName & "'!H" & currentRow & "+'" & sheetName & "'!J" & currentRow & "+'" & sheetName & "'!L" & currentRow & ")/" & QuantitéValue
+        .Range.Interior.ColorIndex = xlNone
+    End With
+    
+    
+    
+    ' Increment the current row
+    currentRow = currentRow + 1
+    sumRow = sumRow + 1
+   
+End Sub
+
+
+Sub AjouterArticle_Click()
+    
+    Dim copyRange As Range
+    Dim pasteRange As Range
+    
+    
+    If Not AreAllDetailsBoxesFilled1(Me) Then
+        MsgBox "Veuillez remplir toutes les cases.", vbExclamation
+        Exit Sub
+    End If
+        
+    Set copyRange = ThisWorkbook.Sheets("CopySheet").Range("A9:N10")
+    pasteRow = newSheet.Cells.SpecialCells(xlCellTypeLastCell).Row + 3  'Find the last used cell in the worksheet
+
+    Set pasteRange = newSheet.Cells(pasteRow, "A")
+    copyRange.Copy pasteRange
+    
+    currentRow = pasteRow + 1
+    sumRow = pasteRow + 2
+    
+    Me.Hide
+    
+    Me.Element.value = ""
+    Me.CodeElement.value = ""
+    Me.Quantité.value = ""
+    Me.PrixUnitaireDevise.value = ""
+    Me.TVAArticle.value = ""
+    Me.TotalDDHT.value = ""
+    
+    Me.Show
+
+End Sub
+
+
+Sub Valider_Click()
+
+    
+    Dim lastRow As Long
+    Dim totalSumHT As Double
+    Dim totalSumTTC As Double
+    Dim totalSumDDTTC As Double
+    Dim cell As Range
+    Dim firstEmptyRow As Long
+    Dim copyRangeValider As Range
+    Dim lastRow5 As Long
+    Dim currentRow5 As Long
+    Dim lastRow6 As Long
+    Dim currentRow6 As Long
+    Dim lastRow7 As Long
+    Dim currentRow7 As Long
+    Dim firstBlankRow As Long
+    Dim SUMACD As Long
+    Dim SUMTRHT As Long
+    Dim targetColumn As Range
+    Dim SUMDDHT As Double
+    Dim lastColumn As Long
+    Dim dataRange As Range
+    Dim cell2 As Range
+    Dim dataSheet As Worksheet
+    Dim tableName As ListObject
+    Dim addedRow As ListRow
+    Dim lastRow2 As Long
+    Dim currentRow2 As Long
+    
+
+    If Not AreAllDetailsBoxesFilled1(Me) Then
+        MsgBox "Veuillez remplir toutes les cases.", vbExclamation
+        Exit Sub
+    End If
+    
+    
+    firstEmptyRow = newSheet.Cells(newSheet.Rows.Count, "A").End(xlUp).Row + 3
+    
+    Set copyRangeValider = ThisWorkbook.Sheets("CopySheet").Range("A12:H14")
+    copyRangeValider.Copy newSheet.Cells(firstEmptyRow, "A")
+    
+    lastRow = newSheet.Cells(newSheet.Rows.Count, "H").End(xlUp).Row
+    
+    For Each cell In newSheet.Range("K3:K" & lastRow)
+        If cell.HasFormula Then
+            If Left(cell.Formula, 5) = "=SUM(" Then
+                totalSumDDTTC = totalSumDDTTC + cell.value
+            End If
+        End If
+    Next cell
+    
+    For Each cell In newSheet.Range("N3:N" & lastRow)
+        If cell.HasFormula Then
+            If Left(cell.Formula, 5) = "=SUM(" Then
+                totalSumHT = totalSumHT + cell.value
+            End If
+        End If
+    Next cell
+    
+    For Each cell In newSheet.Range("Z3:Z" & lastRow)
+        If cell.HasFormula Then
+            If Left(cell.Formula, 5) = "=SUM(" Then
+                totalSumTTC = totalSumTTC + cell.value
+            End If
+        End If
+    Next cell
+    
+    
+    lastRow2 = newSheet.Cells(newSheet.Rows.Count, "F").End(xlUp).Row
+    
+    For currentRow2 = 5 To lastRow2
+        If Left(newSheet.Cells(currentRow2, "F").Formula, 4) = "=SUM" Then
+            FindCellWithSum = newSheet.Cells(currentRow2, "F").value
+            Exit For
+        End If
+    Next currentRow2
+    
+
+    newSheet.Cells(firstEmptyRow, "C").Formula = "=O2+P2-" & totalSumDDTTC
+    newSheet.Cells(firstEmptyRow + 2, "B").Formula = newSheet.Cells(2, "P") + FindCellWithSum
+    newSheet.Cells(firstEmptyRow + 2, "E").Formula = totalSumHT + newSheet.Cells(firstEmptyRow, "C")
+    newSheet.Cells(firstEmptyRow + 2, "H").Formula = totalSumTTC + newSheet.Cells(firstEmptyRow, "C")
+
+    
+    firstBlankRow = 5
+    
+    Do Until newSheet.Cells(firstBlankRow, 1).value = ""
+        firstBlankRow = firstBlankRow + 1
+    Loop
+    
+
+    Set dataRange = newSheet.Range("AA1:AA" & newSheet.Cells(1, Columns.Count).End(xlToLeft).Column)
+    SUMDDHT = 0
+
+    For Each cell2 In dataRange
+        If IsNumeric(cell2.value) Then
+            SUMDDHT = SUMDDHT + cell2.value
+        End If
+    Next cell2
+    
+
+    SUMACD = 0
+    lastRow6 = 200
+    currentRow6 = firstBlankRow
+    
+    Do While currentRow6 <= lastRow6
+        If Left(newSheet.Cells(currentRow6, "J").Formula, 4) = "=SUM" Then
+            FindCellWithSumACD = newSheet.Cells(currentRow6, "J").value
+            SUMACD = SUMACD + FindCellWithSumACD
+        End If
+        currentRow6 = currentRow6 + 1
+    Loop
+
+
+    SUMTRHT = 0
+    lastRow7 = 200
+    currentRow7 = firstBlankRow
+
+    Do While currentRow7 <= lastRow7
+        If Left(newSheet.Cells(currentRow7, "L").Formula, 4) = "=SUM" Then
+            FindCellWithSumTRHT = newSheet.Cells(currentRow7, "L").value
+            SUMTRHT = SUMTRHT + FindCellWithSumTRHT
+        End If
+        currentRow7 = currentRow7 + 1
+    Loop
+     
+        
+    SumNegocCNT = 0
+    TargetRow2 = 5
+
+    Do While newSheet.Cells(TargetRow2, "B").value <> ""
+        If newSheet.Cells(TargetRow2, "B").value Like "DEBOURS TRANSPORT PAYE POUR V/COMPTE" Or _
+            newSheet.Cells(TargetRow2, "B").value Like "DEBOURS TRANSPORT PAYE POUR V/COMPTE AMANA" Or _
+            newSheet.Cells(TargetRow2, "B").value Like "DEBOURS TRANSPORT PAYE POUR V/COMPTE TST" Or _
+            newSheet.Cells(TargetRow2, "B").value Like "DEBOURS TRANSPORT/MAGASINAGE PAYE POUR V/COMPTE" Or _
+            newSheet.Cells(TargetRow2, "B").value Like "DEBOURS MAGASINAGE" Or _
+            newSheet.Cells(TargetRow2, "B").value Like "OUVERTURE DOSSIER" Or _
+            newSheet.Cells(TargetRow2, "B").value Like "DEBOURS MAGASINAGE TST" Or _
+            newSheet.Cells(TargetRow2, "B").value Like "HONORAIRES DE TRANSIT" Or _
+            newSheet.Cells(TargetRow2, "B").value Like "OUVERTURE ET VERIFICATION CERCLAGE" Or _
+            newSheet.Cells(TargetRow2, "B").value Like "CAMIONAGE/LIVRAISON/LIVRAISON" Then
+
+                SumNegocCNT = SumNegocCNT + newSheet.Cells(TargetRow2, "C").value
+        End If
+            TargetRow2 = TargetRow2 + 1
+        Loop
+    
+    SumNegocCT = 0
+    TargetRow2 = 5
+    Do While newSheet.Cells(TargetRow2, "D").value <> ""
+        If newSheet.Cells(TargetRow2, "D").value Like "DEBOURS TRANSPORT PAYE POUR V/COMPTE" Or _
+           newSheet.Cells(TargetRow2, "D").value Like "DEBOURS TRANSPORT PAYE POUR V/COMPTE AMANA" Or _
+           newSheet.Cells(TargetRow2, "D").value Like "DEBOURS TRANSPORT PAYE POUR V/COMPTE TST" Or _
+           newSheet.Cells(TargetRow2, "D").value Like "DEBOURS TRANSPORT/MAGASINAGE PAYE POUR V/COMPTE" Or _
+           newSheet.Cells(TargetRow2, "D").value Like "DEBOURS MAGASINAGE" Or _
+           newSheet.Cells(TargetRow2, "D").value Like "OUVERTURE DOSSIER" Or _
+           newSheet.Cells(TargetRow2, "D").value Like "DEBOURS MAGASINAGE TST" Or _
+           newSheet.Cells(TargetRow2, "D").value Like "HONORAIRES DE TRANSIT" Or _
+           newSheet.Cells(TargetRow2, "D").value Like "OUVERTURE ET VERIFICATION CERCLAGE" Or _
+           newSheet.Cells(TargetRow2, "D").value Like "CAMIONAGE/LIVRAISON/LIVRAISON" Then
+
+            SumNegocCT = SumNegocCT + newSheet.Cells(TargetRow2, "E").value
+        
+        End If
+        
+        TargetRow2 = TargetRow2 + 1
+    Loop
+        
+   
+    Set dataSheet = ThisWorkbook.Sheets("Base De Données Achat")
+    Set tableName = dataSheet.ListObjects("DATA_BASE")
+    Set addedRow = tableName.ListRows.Add()
+    With addedRow
+        .Range(1) = newSheet.Range("A2").value
+        .Range(2) = newSheet.Range("F2").value
+        .Range(3) = newSheet.Range("J2").value
+        .Range(4) = newSheet.Range("K2").value
+        .Range(5) = newSheet.Range("M2").value
+        .Range(6) = newSheet.Range("N2").value
+        .Range(7) = SUMDDHT
+        .Range(8) = SUMACD
+        .Range(9) = SUMTRHT
+        .Range(10) = newSheet.Cells(firstEmptyRow + 2, "B").value
+        .Range(11) = newSheet.Cells(firstEmptyRow, "C").value
+        .Range(12) = newSheet.Cells(firstEmptyRow + 2, "E").value
+        .Range(13) = newSheet.Cells(firstEmptyRow + 2, "H").value
+        .Range(14) = SumNegocCNT
+        .Range(15) = SumNegocCT
+        .Range.Interior.ColorIndex = xlNone
+    End With
+    
+    
+    Me.Element.value = ""
+    Me.CodeElement.value = ""
+    Me.Quantité.value = ""
+    Me.PrixUnitaireDevise.value = ""
+    Me.TVAArticle.value = ""
+    Me.NDossier.value = ""
+    Me.TotalDDHT.value = ""
+    
+    Me.Hide
+        
+End Sub
