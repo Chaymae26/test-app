@@ -1,0 +1,50 @@
+Attribute VB_Name = "Inputs"
+Public pasteRow As Long
+Public pasteRow2 As Long
+Public FirstClick As Boolean
+Public FirstClick2 As Boolean
+
+Sub Input_data()
+
+Nouvel_Achat.Show
+
+End Sub
+
+Sub Input_data2()
+
+Vente.Show
+
+End Sub
+
+Sub InputRecherche()
+
+Rechercher.Show
+    
+End Sub
+
+Public Function GetValidSheetName(proposedName As String) As String
+
+    Dim invalidChars As Variant
+    Dim invalidChar As Variant
+    
+    ' Define invalid characters for sheet names
+    invalidChars = Array(":", "/", "\", "?", "*", "[", "]", ".")
+    
+    ' Replace invalid characters with empty spaces
+    For Each invalidChar In invalidChars
+        proposedName = Replace(proposedName, invalidChar, " ")
+    Next invalidChar
+    
+    ' Trim leading and trailing spaces
+    proposedName = Trim(proposedName)
+    
+    ' Ensure the sheet name is not empty or too long
+    If Len(proposedName) = 0 Then
+        proposedName = "Sheet"
+    ElseIf Len(proposedName) > 31 Then
+        proposedName = Left(proposedName, 31)
+    End If
+    
+    GetValidSheetName = proposedName
+    
+End Function
