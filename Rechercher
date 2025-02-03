@@ -1,0 +1,76 @@
+Attribute VB_Name = "Rechercher"
+Attribute VB_Base = "0{730C0C80-199E-4352-91E1-135B5004636F}{20B73004-CBB3-4E44-9605-62B007D572A6}"
+Attribute VB_GlobalNameSpace = False
+Attribute VB_Creatable = False
+Attribute VB_PredeclaredId = True
+Attribute VB_Exposed = False
+Attribute VB_TemplateDerived = False
+Attribute VB_Customizable = False
+Sub Valider_Click()
+
+    Dim searchValue As String
+    Dim searchArea As Range
+    Dim ws As Worksheet
+    Dim foundSheet As Boolean
+    
+ 
+    searchValue = Me.ResearchInput.value
+    foundSheet = False
+    
+    
+    For Each ws In ThisWorkbook.Sheets
+        If Me.OptionNDossier.value Then
+            Set searchArea = ws.Range("A2")
+        ElseIf Me.OptionNBC.value Then
+            Set searchArea = ws.Range("B2")
+        ElseIf Me.OptionNFacture.value Then
+            Set searchArea = ws.Range("D2")
+        ElseIf Me.OptionDateFacture.value Then
+            Set searchArea = ws.Range("E2")
+        ElseIf Me.OptionMTDevise.value Then
+            Set searchArea = ws.Range("I2")
+        ElseIf Me.OptionNDUM.value Then
+            Set searchArea = ws.Range("G2")
+        ElseIf Me.OptionPoids.value Then
+            Set searchArea = ws.Range("H2")
+        ElseIf Me.OptionFournisseur.value Then
+            Set searchArea = ws.Range("F2")
+        ElseIf Me.OptionNFacture2.value Then
+            Set searchArea = ws.Range("B2")
+        ElseIf Me.OptionNDA.value Then
+            Set searchArea = ws.Range("C2")
+        ElseIf Me.OptionClient.value Then
+            Set searchArea = ws.Range("D2")
+        ElseIf Me.OptionCoutTransport.value Then
+            Set searchArea = ws.Range("E2")
+        ElseIf Me.OptionPVT.value Then
+            Set searchArea = ws.Range("F2")
+        ElseIf Me.OptionDatePaiement.value Then
+            Set searchArea = ws.Range("G2")
+        ElseIf Me.OptionDateEncaissement.value Then
+            Set searchArea = ws.Range("H2")
+        End If
+        
+        If Not searchArea Is Nothing Then
+            If Not searchArea.value = "" Then
+                If searchArea.value = searchValue Then
+                    ws.Activate
+                    foundSheet = True
+                
+                    Exit For
+                End If
+            End If
+        End If
+    Next ws
+    
+    If foundSheet Then
+        MsgBox "Dossier/Facture trouvé.", vbInformation
+        
+    Else
+        MsgBox "Aucun Dossier/Facture Trouvé", vbInformation
+       
+    End If
+    
+    Me.Hide
+    
+End Sub
