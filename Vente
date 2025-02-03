@@ -1,0 +1,188 @@
+Attribute VB_Name = "Vente"
+Attribute VB_Base = "0{9FED7701-7D4E-45BB-BF52-C5DBD0959705}{4CB5591E-5187-4AA2-B07F-72C8AB96C893}"
+Attribute VB_GlobalNameSpace = False
+Attribute VB_Creatable = False
+Attribute VB_PredeclaredId = True
+Attribute VB_Exposed = False
+Attribute VB_TemplateDerived = False
+Attribute VB_Customizable = False
+Dim NameSheet As String
+Dim ws As Worksheet
+Dim SheetNew As Worksheet
+Dim pasteRow2 As Long
+Dim currentRow2 As Long
+Dim sumRow2 As Long
+Dim lastRow2 As Long
+Dim CodeElementValue As String
+Dim SIValue As Double
+Dim EntreesValue As Double
+Dim DateEntreesValue As String
+Dim SortiesValue As Double
+Dim DateSortiesValue As String
+Dim PrixVenteArticleValue As Double
+Dim cell As Range
+Dim dataSheet3 As Worksheet
+Dim tableName3 As ListObject
+Dim addedRow3 As ListRow
+Dim cell2 As Range
+Dim totalSumPV As Double
+
+Sub ValiderDetailsVte_Click()
+    
+    If Not AreAllVenteBoxesFilled(Me) Then
+        MsgBox "Veuillez remplir toutes les cases.", vbExclamation
+        Exit Sub
+    End If
+    
+    Set frme = Vente
+    Set ws = ThisWorkbook.Worksheets("Factures Vente")
+    Set SheetNew = ThisWorkbook.Sheets.Add(After:=ws)
+    
+    NameSheet = "Facture " & Trim(frme.NFacture.value)
+    NameSheet = GetValidSheetName(NameSheet)
+    SheetNew.Name = NameSheet
+    ThisWorkbook.Worksheets("CopySheet2").Range("A1:I5").Copy SheetNew.Range("A1")
+    SheetNew.Rows.RowHeight = 30
+    SheetNew.Columns.ColumnWidth = 25
+
+
+    SheetNew.Range("B2").value = Me.NFacture.value
+    SheetNew.Range("C2").value = Me.NDossierA.value
+    SheetNew.Range("D2").value = Me.Client.value
+    SheetNew.Range("E2").value = Me.CoutTransport.value
+    SheetNew.Range("G2").value = Me.DatePaiement.value
+    SheetNew.Range("H2").value = Me.DateEncaissement.value
+    SheetNew.Range("I2").value = Me.StatusPaiement.value
+    
+    FirstClick2 = True
+
+    Me.NDossierA.value = ""
+    Me.Client.value = ""
+    Me.CoutTransport.value = ""
+    Me.DatePaiement.value = ""
+    Me.DateEncaissement.value = ""
+    Me.StatusPaiement.value = ""
+    
+    
+End Sub
+
+Sub AjouterElement_Click()
+
+    If Not AreAllVenteBoxesFilled2(Me) Then
+        MsgBox "Veuillez remplir toutes les cases.", vbExclamation
+        Exit Sub
+    End If
+    
+    pasteRow2 = 4
+
+    NameSheet = "Facture " & Trim(Me.NFacture2.value)
+    Set SheetNew = ThisWorkbook.Sheets(NameSheet)
+    
+    If FirstClick2 = True Then
+        currentRow2 = pasteRow2 + 1
+        sumRow2 = pasteRow2 + 2
+        FirstClick2 = False
+    End If
+    
+    SheetNew.Rows(currentRow2).Insert Shift:=xlDown
+    
+    CodeElementValue = Me.CodeElement.value
+    SIValue = Val(Me.SI.value)
+    EntreesValue = Val(Me.Entrees.value)
+    DateEntreesValue = Me.DateEntrees.value
+    SortiesValue = Val(Me.Sorties.value)
+    DateSortiesValue = Me.DateSorties.value
+    PrixVenteArticleValue = Val(Me.PrixVenteArticle.value)
+    
+    
+    If Me.OptionTTC.value Then
+        PrixVenteArticleValue = PrixVenteArticleValue * 0.8
+    ElseIf Me.OptionHT.value Then
+        PrixVenteArticleValue = PrixVenteArticleValue
+    End If
+    
+    
+    SheetNew.Cells(currentRow2, "A").value = CodeElementValue
+    SheetNew.Cells(currentRow2, "B").value = SIValue
+    SheetNew.Cells(currentRow2, "C").value = EntreesValue
+    SheetNew.Cells(currentRow2, "D").value = DateEntreesValue
+    SheetNew.Cells(currentRow2, "E").value = SortiesValue
+    SheetNew.Cells(currentRow2, "F").value = DateSortiesValue
+    SheetNew.Cells(currentRow2, "G").Formula = "=B" & currentRow2 & "+C" & currentRow2 & "-E" & currentRow2
+    SheetNew.Cells(currentRow2, "H").value = PrixVenteArticleValue
+    SheetNew.Cells(currentRow2, "I").FormulaR1C1 = "=RC[-1]*RC[-4]"
+    
+    SheetNew.Rows(currentRow2).Interior.ColorIndex = xlNone
+    
+    SheetNew.Cells(sumRow2, "B").Formula = "=SUM(B" & pasteRow2 + 1 & ":B" & currentRow2 & ")"
+    SheetNew.Cells(sumRow2, "C").Formula = "=SUM(C" & pasteRow2 + 1 & ":C" & currentRow2 & ")"
+    SheetNew.Cells(sumRow2, "E").Formula = "=SUM(E" & pasteRow2 + 1 & ":E" & currentRow2 & ")"
+    SheetNew.Cells(sumRow2, "G").Formula = "=SUM(G" & pasteRow2 + 1 & ":G" & currentRow2 & ")"
+    SheetNew.Cells(sumRow2, "H").Formula = "=SUM(H" & pasteRow2 + 1 & ":H" & currentRow2 & ")"
+    SheetNew.Cells(sumRow2, "I").Formula = "=SUM(I" & pasteRow2 + 1 & ":I" & currentRow2 & ")"
+    
+    
+    Me.CodeElement.value = ""
+    Me.SI.value = ""
+    Me.Entrees.value = ""
+    Me.DateEntrees.value = ""
+    Me.Sorties.value = ""
+    Me.DateSorties.value = ""
+    Me.PrixVenteArticle.value = ""
+    Me.OptionTTC.value = False
+    Me.OptionHT.value = False
+    
+
+    lastRow2 = SheetNew.Cells(SheetNew.Rows.Count, "H").End(xlUp).Row
+    
+    
+    For Each cell In SheetNew.Range("H3:H" & lastRow2)
+        If cell.HasFormula Then
+            If Left(cell.Formula, 5) = "=SUM(" Then
+                totalSumPV = totalSumPV + cell.value
+            End If
+        End If
+    Next cell
+    
+    
+    Set dataSheet3 = ThisWorkbook.Sheets("Base De Donn茅es Vente")
+    Set tableName3 = dataSheet3.ListObjects("BD_Vente")
+    Set addedRow3 = tableName3.ListRows.Add()
+    With addedRow3
+            .Range(1) = SheetNew.Range("B2").value
+            .Range(2) = SheetNew.Range("C2").value
+            .Range(3) = SheetNew.Range("D2").value
+            .Range(4) = CodeElementValue
+            .Range(5) = SheetNew.Range("E2").value
+            .Range(6) = SheetNew.Range("G2").value
+            .Range(7) = SheetNew.Range("H2").value
+            .Range(8) = SortiesValue
+            .Range(9) = SheetNew.Cells(currentRow2, "G").value
+            .Range(10) = PrixVenteArticleValue
+            .Range(11) = SheetNew.Cells(currentRow2, "I").value
+            .Range.Interior.ColorIndex = xlNone
+            
+    End With
+    
+    currentRow2 = currentRow2 + 1
+    sumRow2 = sumRow2 + 1
+    
+    
+End Sub
+
+
+Sub ValiderDetailsArt_Click()
+
+    For Each cell2 In SheetNew.Range("I4:I1000")
+        If Left(cell2.Formula, 4) = "=SUM" Then
+            totalSumPV = cell2.value
+        End If
+    Next cell2
+    
+    SheetNew.Range("F2").value = totalSumPV
+    
+
+    Me.Hide
+    
+
+End Sub
