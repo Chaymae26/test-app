@@ -1,0 +1,168 @@
+Attribute VB_Name = "Nouvelle_Commande"
+Attribute VB_Base = "0{68F9FF88-2D3F-46A2-B17C-35FE14E577BD}{32439EF4-2688-4053-B63D-14010CE51374}"
+Attribute VB_GlobalNameSpace = False
+Attribute VB_Creatable = False
+Attribute VB_PredeclaredId = True
+Attribute VB_Exposed = False
+Attribute VB_TemplateDerived = False
+Attribute VB_Customizable = False
+Option Explicit
+
+Private Sub Montant_BT_Click()
+
+Dim Mt_Total As Double
+
+Nom.Enabled = False
+Age.Enabled = False
+Montant.Enabled = False
+OptionFeminin.Enabled = False
+OptionMasculin.Enabled = False
+OptionNems.Enabled = False
+OptionSalade.Enabled = False
+OptionSandwich.Enabled = False
+OptionSushi.Enabled = False
+OptionOui.Enabled = False
+OptionNon.Enabled = False
+OptionGlace.Enabled = False
+OptionBoisson.Enabled = False
+
+Mt_Total = 0
+
+If Me.OptionSalade.Value Then
+
+    Mt_Total = Mt_Total + 15
+Else
+    Mt_Total = Mt_Total + 25
+End If
+
+If Me.OptionSandwich.Value Then
+
+    Mt_Total = Mt_Total + 35
+Else
+    Mt_Total = Mt_Total + 70
+End If
+
+If Me.OptionGlace.Value Then
+
+    Mt_Total = Mt_Total + 20
+Else
+    Mt_Total = Mt_Total + 12
+End If
+
+If Me.OptionOui.Value Then
+
+    Mt_Total = Mt_Total + 10
+
+End If
+
+Montant.Value = Mt_Total
+
+Commander_BT.Enabled = True
+
+End Sub
+
+Private Sub UserForm_Initialize()
+
+Age.AddItem ("<4 ans")
+Age.AddItem ("4 ans - 14 ans")
+Age.AddItem ("15 ans - 17 ans")
+Age.AddItem ("18 ans - 29 ans")
+Age.AddItem ("30 ans - 60 ans")
+Age.AddItem (">60 ans")
+
+End Sub
+
+
+Private Sub Commander_BT_Click()
+
+
+Sheet2.Range("K11").Value = Nom.Text
+Sheet2.Range("K13").Value = Age.Text
+Sheet2.Range("M25").Value = Montant.Text & " DHS"
+
+If Me.OptionFeminin.Value Then
+
+    Sheet2.Range("K15").Value = "Feminin"
+Else
+    Sheet2.Range("K15").Value = "Masculin"
+End If
+
+If Me.OptionSalade.Value Then
+
+    Sheet2.Range("K17").Value = "Salade - 15 DHS"
+Else
+    Sheet2.Range("K17").Value = "Nems - 25 DHS"
+End If
+
+If Me.OptionSandwich.Value Then
+
+    Sheet2.Range("K19").Value = "Sandwich - 35 DHS"
+Else
+    Sheet2.Range("K19").Value = "Sushi - 70 DHS"
+End If
+
+If Me.OptionGlace.Value Then
+
+    Sheet2.Range("K21").Value = "Glace - 20 DHS"
+Else
+    Sheet2.Range("K21").Value = "Boisson - 12 DHS"
+End If
+
+If Me.OptionOui.Value Then
+
+    Sheet2.Range("K23").Value = "Oui - 10 DHS"
+Else
+    Sheet2.Range("K23").Value = "Non"
+End If
+
+Dim wb As Workbook
+Set wb = ThisWorkbook
+
+wb.Sheets("ReÃ§u").Activate
+
+Unload Me
+
+
+End Sub
+
+
+Private Sub Initialiser_BT_Click()
+
+Nom.Enabled = True
+Age.Enabled = True
+Montant.Enabled = True
+OptionFeminin.Enabled = True
+OptionMasculin.Enabled = True
+OptionNems.Enabled = True
+OptionSalade.Enabled = True
+OptionSandwich.Enabled = True
+OptionSushi.Enabled = True
+OptionOui.Enabled = True
+OptionNon.Enabled = True
+OptionGlace.Enabled = True
+OptionBoisson.Enabled = True
+
+
+Nom.Text = ""
+Age.Text = ""
+Montant.Text = ""
+OptionFeminin.Value = False
+OptionMasculin.Value = False
+OptionNems.Value = False
+OptionSalade.Value = False
+OptionSandwich.Value = False
+OptionSushi.Value = False
+OptionOui.Value = False
+OptionNon.Value = False
+OptionGlace.Value = False
+OptionBoisson.Value = False
+
+
+
+End Sub
+
+Private Sub Quitter_BT_Click()
+
+Unload Me
+
+End Sub
