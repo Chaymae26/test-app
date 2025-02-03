@@ -1,0 +1,134 @@
+Attribute VB_Name = "AreBoxesFilled"
+Dim sheetName As String
+Dim newSheet As Worksheet
+
+Function AreAllTextBoxesFilled(frm As Nouvel_Achat) As Boolean
+    Dim requiredTextBoxes As Variant
+    requiredTextBoxes = Array(frm.NDossier, frm.NBC, frm.DateBC, _
+                            frm.NFacture, frm.DateFacture, frm.Fournisseur, _
+                            frm.MtDevise, frm.TauxDeChange, frm.DatePaiement, _
+                            frm.DroitDouaneTTC, frm.TVADouane, frm.StatusPaiement, _
+                            frm.Transport, frm.StatusPaiementTransport, frm.AutresCharges)
+                             
+                          
+    Dim i As Long
+    For i = LBound(requiredTextBoxes) To UBound(requiredTextBoxes)
+        If Trim(requiredTextBoxes(i).value) = "" Then
+            AreAllTextBoxesFilled = False
+            Exit Function
+        End If
+    Next i
+    Dim optionSelected As Boolean
+    optionSelected = frm.OptionDollar.value Or frm.OptionEuro.value Or frm.OptionPound.value
+    
+    If Not optionSelected Then
+        AreAllTextBoxesFilled = False
+        Exit Function
+    End If
+    
+    AreAllTextBoxesFilled = True
+    
+End Function
+
+
+  Function AreAllBoxesFilled(frm As Nouvel_Achat) As Boolean
+    
+    Dim requiredTextBoxes2 As Variant
+    requiredTextBoxes2 = Array(frm.IntituléCNT, frm.ValeurCNT, frm.IntituléCT, frm.ValeurHTCT)
+                                           
+    Dim i As Long
+    For i = LBound(requiredTextBoxes2) To UBound(requiredTextBoxes2)
+        If Trim(requiredTextBoxes2(i).value) = "" Then
+            AreAllBoxesFilled = False
+            Exit Function
+        End If
+    Next i
+
+    Dim optionSelected2 As Boolean
+    optionSelected2 = frm.OptionTaux20.value Or frm.OptionTaux14.value Or frm.OptionTaux10.value Or frm.OptionTaux7.value
+    
+    If Not optionSelected2 Then
+        AreAllBoxesFilled = False
+        Exit Function
+    End If
+    
+    AreAllBoxesFilled = True
+
+End Function
+
+Function AreAllDetailsBoxesFilled1(frm As Details_Articles) As Boolean
+    Dim requiredTextBoxes As Variant
+    requiredTextBoxes = Array(frm.NDossier, frm.TotalDDHT, frm.TVAArticle)
+                                 
+                          
+    Dim i As Long
+    For i = LBound(requiredTextBoxes) To UBound(requiredTextBoxes)
+        If Trim(requiredTextBoxes(i).value) = "" Then
+            AreAllDetailsBoxesFilled1 = False
+            Exit Function
+        End If
+    Next i
+    
+    AreAllDetailsBoxesFilled1 = True
+    
+End Function
+
+Function AreAllDetailsBoxesFilled2(frm As Details_Articles) As Boolean
+    Dim requiredTextBoxes As Variant
+    
+    requiredTextBoxes = Array(frm.NDossier, frm.TotalDDHT, frm.TVAArticle, frm.CodeElement, frm.Quantité, frm.PrixUnitaireDevise, frm.CodeInterim)
+                             
+                          
+    Dim i As Long
+    For i = LBound(requiredTextBoxes) To UBound(requiredTextBoxes)
+        If Trim(requiredTextBoxes(i).value) = "" Then
+            AreAllDetailsBoxesFilled2 = False
+            Exit Function
+        End If
+    Next i
+    
+    AreAllDetailsBoxesFilled2 = True
+End Function
+
+
+Function AreAllVenteBoxesFilled(frme As Vente) As Boolean
+
+    Dim requiredTextBoxes As Variant
+    requiredTextBoxes = Array(frme.NFacture, frme.CoutTransport, frme.DatePaiement, frme.DateEncaissement, frme.StatusPaiement, frme.Client)
+                             
+                          
+    Dim i As Long
+    For i = LBound(requiredTextBoxes) To UBound(requiredTextBoxes)
+        If Trim(requiredTextBoxes(i).value) = "" Then
+            AreAllVenteBoxesFilled = False
+            Exit Function
+        End If
+    Next i
+    
+    AreAllVenteBoxesFilled = True
+End Function
+
+Function AreAllVenteBoxesFilled2(frme As Vente) As Boolean
+
+    Dim requiredTextBoxes As Variant
+    requiredTextBoxes = Array(frme.CodeElement, frme.SI, frme.Entrees, frme.DateEntrees, frme.Sorties, frme.DateSorties, frme.PrixVenteArticle)
+                             
+                          
+    Dim i As Long
+    For i = LBound(requiredTextBoxes) To UBound(requiredTextBoxes)
+        If Trim(requiredTextBoxes(i).value) = "" Then
+            AreAllVenteBoxesFilled2 = False
+            Exit Function
+        End If
+    Next i
+    
+    Dim optionSelected3 As Boolean
+    optionSelected3 = frme.OptionHT.value Or frme.OptionTTC.value
+    
+    If Not optionSelected3 Then
+        AreAllVenteBoxesFilled2 = False
+        Exit Function
+    End If
+    
+    AreAllVenteBoxesFilled2 = True
+End Function
